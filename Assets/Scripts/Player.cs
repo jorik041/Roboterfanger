@@ -31,6 +31,17 @@ public class Player : MonoBehaviour
                     robotCount++;
                 }
             }
+            else if (Input.GetMouseButton(1))
+            {
+                if (hit.transform.tag != "Robot")
+                {
+                    var normal = hit.normal;
+                    var forward = cam.up;
+                    Vector3.OrthoNormalize(ref normal, ref forward);
+                    Instantiate(robot1, hit.point + normal * robotHeight / 2, Quaternion.LookRotation(forward, normal));
+                    robotCount++;
+                }
+            }
             Debug.DrawRay(hit.point, hit.normal, Color.green);
         }
         display.text = robotCount.ToString();

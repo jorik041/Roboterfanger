@@ -2,23 +2,25 @@ using UnityEngine;
 
 public class Robot : MonoBehaviour
 {
-    public int acceleration = 50;
-    public float mobility = 0.6f;
-    public int gravity = 5;
+    public int acceleration;
+    public float mobility;
+    public float gravity;
     public LayerMask wallLayer;
     public Renderer skin;
+    public Collider sensor;
     
     private Transform robot;
     private Rigidbody body;
     private Material skinMaterial;
     private bool mode = true;
     private Vector3 gravityVector;
-    private int grounded = 0;
+    private Quaternion rotation;
 
     void Start()
     {
         robot = transform;
         body = rigidbody;
+        body.centerOfMass = new Vector3(0, -0.05f, 0);
         skinMaterial = skin.material;
 
         var randomness = Random.value;
@@ -26,43 +28,34 @@ public class Robot : MonoBehaviour
         Invoke("StartAudio", 0.5f + randomness);
 
         InvokeRepeating("MoveForward", 0.5f + randomness, 0.1f);
-        InvokeRepeating("AI", 0.5f + randomness, 0.05f);
-        InvokeRepeating("SwitchMode", 2 + randomness * 2, 2 + randomness * 2);
+        //InvokeRepeating("AI", 0.5f + randomness, 0.05f);
+        //InvokeRepeating("SwitchMode", 2 + randomness * 2, 2 + randomness * 2);
     }
 
     void FixedUpdate()
     {
-        body.MoveRotation(body.rotation * Quaternion.FromToRotation(-robot.up, gravityVector));
-        body.AddForce(-robot.up * gravity);
-    }
-
-    void FindWall()
-    {
-        var position = robot.position;
-        var sphere = Physics.OverlapSphere(position, 0.25f, wallLayer.value);
-        var closestWall = Vector3.zero;
-        var distanceToWall = 2f;
-
-        foreach (var wall in sphere)
-        {
-            var closestPoint = wall.ClosestPointOnBounds(position);
-            var distance = Vector3.Distance(position, closestPoint);
-            if (distance <= distanceToWall)
-            { 
-                distanceToWall = distance;
-                closestWall = closestPoint;
-            }
-        }
-
-        gravityVector = Vector3.Normalize(position - closestWall);
-
-        body.MoveRotation(body.rotation * Quaternion.FromToRotation(-robot.up, gravityVector));
-
+        Debug.DrawRay(robot.position, gravityVector, Color.red);
+        Debug.DrawRay(robot.position, -robot.up, Color.blue);
+        //body.MoveRotation(Quaternion.FromToRotation(-robot.up, gravityVector));
+        //body.MoveRotation(Quaternion.Euler(gravityVector));
         //public Vector3 eulerAngleVelocity = new Vector3(0, 100, 0);
         //var deltaRotation = Quaternion.Euler(eulerAngleVelocity * Time.deltaTime);
         //body.MoveRotation(body.rotation * deltaRotation);
+        //Quaternion.Euler(-transform.up)
+        
+        //var rotation = Quaternion.Slerp(Quaternion.Euler(-robot.up), Quaternion.Euler(gravityVector), 1);
+        //if (gravityVector != -robot.up)
 
-        //Vector3.OrthoNormalize(ref normal, ref forward);
+        //float step = 0.5f * Time.deltaTime;
+        //Vector3 newDir = Vector3.RotateTowards(-robot.up, gravityVector, step, 0.0F);
+        //Debug.DrawRay(robot.position, newDir, Color.cyan);
+
+        //rotation = Quaternion.RotateTowards(Quaternion.Euler(-robot.up), Quaternion.Euler(gravityVector), 1);
+        //body.MoveRotation(Quaternion.LookRotation(newDir));
+
+        //* Vector3.Angle(gravityVector, -robot.up) 
+        body.AddForce(gravityVector * gravity);
+        //body.AddForce(-robot.up * gravity);
     }
 
     void StartAudio()
@@ -112,34 +105,33 @@ public class Robot : MonoBehaviour
         body.AddTorque(robot.up * mobility);
     }
 
-    void OnCollisionEnter(Collision collisionInfo)
-    {
-        if (collisionInfo.gameObject.tag != "Wall") return;
-        grounded++;
-    }
-
     void OnCollisionStay(Collision collisionInfo)
     {
         if (collisionInfo.gameObject.tag != "Wall") return;
 
         if (collisionInfo.contacts.Length > 0)
         {
+            foreach (ContactPoint contact in collisionInfo.contacts)
+            {
+                Debug.DrawRay(contact.point, contact.normal, Color.white);
+            }
             gravityVector = -collisionInfo.contacts[0].normal;
-        }
-
-        foreach (ContactPoint contact in collisionInfo.contacts)
-        {
-            Debug.DrawRay(contact.point, contact.normal, Color.white);
+            Debug.DrawRay(collisionInfo.contacts[0].point, collisionInfo.contacts[0].normal, Color.black);
         }
     }
 
     void OnCollisionExit(Collision collisionInfo)
     {
-        if(collisionInfo.gameObject.tag != "Wall") return;
+        if (collisionInfo.gameObject.tag != "Wall") return;
 
-        if (grounded > 0)
+        if (collisionInfo.contacts.Length > 0)
         {
-            grounded--;
+            //gravityVector = -collisionInfo.contacts[0].normal;
+        }
+
+        foreach (ContactPoint contact in collisionInfo.contacts)
+        {
+            Debug.DrawRay(contact.point, contact.normal, Color.black);
         }
     }
 }
