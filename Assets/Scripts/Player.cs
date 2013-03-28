@@ -5,11 +5,11 @@ public class Player : MonoBehaviour
     public Transform robot;
     public Transform robot1;
     public GUIText display;
-    public float robotHeight = 0.1f;
+    public float robotHeight = 0.14f;
 
     private RaycastHit hit;
     private Transform cam;
-    private int robotCount = 0;
+    private int robotCount;
 
     void Start()
     {
@@ -27,7 +27,7 @@ public class Player : MonoBehaviour
                     var normal = hit.normal;
                     var forward = cam.up;
                     Vector3.OrthoNormalize(ref normal, ref forward);
-                    Instantiate(robot, hit.point + normal*robotHeight/2, Quaternion.LookRotation(forward, normal));
+                    Instantiate(robot, hit.point + normal * robotHeight / 2, Quaternion.LookRotation(forward, normal));
                     robotCount++;
                 }
             }

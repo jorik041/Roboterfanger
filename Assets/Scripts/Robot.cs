@@ -2,19 +2,17 @@ using UnityEngine;
 
 public class Robot : MonoBehaviour
 {
-    public int acceleration;
-    public float mobility;
+    public float acceleration;
+    public float turnSpeed;
     public float gravity;
     public LayerMask wallLayer;
     public Renderer skin;
-    public Collider sensor;
     
     private Transform robot;
     private Rigidbody body;
     private Material skinMaterial;
     private bool mode = true;
-    private Vector3 gravityVector;
-    private Quaternion rotation;
+    private Vector3 wallNormal;
 
     void Start()
     {
@@ -22,40 +20,28 @@ public class Robot : MonoBehaviour
         body = rigidbody;
         body.centerOfMass = new Vector3(0, -0.05f, 0);
         skinMaterial = skin.material;
+        wallNormal = robot.up;
 
-        var randomness = Random.value;
+        var start = Random.value;
 
-        Invoke("StartAudio", 0.5f + randomness);
-
-        InvokeRepeating("MoveForward", 0.5f + randomness, 0.1f);
-        //InvokeRepeating("AI", 0.5f + randomness, 0.05f);
-        //InvokeRepeating("SwitchMode", 2 + randomness * 2, 2 + randomness * 2);
+        Invoke("StartAudio", 0.5f + start);
+        InvokeRepeating("MoveForward", 0.5f + start, 0.1f);
+        InvokeRepeating("AI", 0.5f + start, 0.05f);
+        InvokeRepeating("SwitchMode", 2 + start * 2, 2 + start * 2);
     }
 
     void FixedUpdate()
     {
-        Debug.DrawRay(robot.position, gravityVector, Color.red);
+        Debug.DrawRay(robot.position, -wallNormal, Color.red);
         Debug.DrawRay(robot.position, -robot.up, Color.blue);
-        //body.MoveRotation(Quaternion.FromToRotation(-robot.up, gravityVector));
-        //body.MoveRotation(Quaternion.Euler(gravityVector));
-        //public Vector3 eulerAngleVelocity = new Vector3(0, 100, 0);
-        //var deltaRotation = Quaternion.Euler(eulerAngleVelocity * Time.deltaTime);
-        //body.MoveRotation(body.rotation * deltaRotation);
-        //Quaternion.Euler(-transform.up)
-        
-        //var rotation = Quaternion.Slerp(Quaternion.Euler(-robot.up), Quaternion.Euler(gravityVector), 1);
-        //if (gravityVector != -robot.up)
 
-        //float step = 0.5f * Time.deltaTime;
-        //Vector3 newDir = Vector3.RotateTowards(-robot.up, gravityVector, step, 0.0F);
-        //Debug.DrawRay(robot.position, newDir, Color.cyan);
-
-        //rotation = Quaternion.RotateTowards(Quaternion.Euler(-robot.up), Quaternion.Euler(gravityVector), 1);
-        //body.MoveRotation(Quaternion.LookRotation(newDir));
-
-        //* Vector3.Angle(gravityVector, -robot.up) 
-        body.AddForce(gravityVector * gravity);
-        //body.AddForce(-robot.up * gravity);
+        if (robot.up != wallNormal)
+        {
+            var forward = robot.forward;
+            Vector3.OrthoNormalize(ref wallNormal, ref forward);
+            body.rotation = Quaternion.LookRotation(forward, wallNormal);
+        }
+        body.AddForce(-wallNormal * gravity);
     }
 
     void StartAudio()
@@ -97,12 +83,12 @@ public class Robot : MonoBehaviour
 
     void MoveLeft()
     {
-        body.AddTorque(-robot.up * mobility);
+        body.AddTorque(-robot.up * turnSpeed);
     }
 
     void MoveRight()
     {
-        body.AddTorque(robot.up * mobility);
+        body.AddTorque(robot.up * turnSpeed);
     }
 
     void OnCollisionStay(Collision collisionInfo)
@@ -111,27 +97,13 @@ public class Robot : MonoBehaviour
 
         if (collisionInfo.contacts.Length > 0)
         {
-            foreach (ContactPoint contact in collisionInfo.contacts)
+            foreach (var contact in collisionInfo.contacts)
             {
                 Debug.DrawRay(contact.point, contact.normal, Color.white);
             }
-            gravityVector = -collisionInfo.contacts[0].normal;
+
+            wallNormal = collisionInfo.contacts[0].normal;
             Debug.DrawRay(collisionInfo.contacts[0].point, collisionInfo.contacts[0].normal, Color.black);
-        }
-    }
-
-    void OnCollisionExit(Collision collisionInfo)
-    {
-        if (collisionInfo.gameObject.tag != "Wall") return;
-
-        if (collisionInfo.contacts.Length > 0)
-        {
-            //gravityVector = -collisionInfo.contacts[0].normal;
-        }
-
-        foreach (ContactPoint contact in collisionInfo.contacts)
-        {
-            Debug.DrawRay(contact.point, contact.normal, Color.black);
         }
     }
 }
