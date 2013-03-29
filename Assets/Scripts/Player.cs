@@ -5,8 +5,8 @@ public class Player : MonoBehaviour
     public Transform robot;
     public GUIText display;
     public float robotHeight = 0.14f;
-    public LayerMask wallLayer;
-    public LayerMask robotLayer;
+    public LayerMask wallsLayer;
+    public LayerMask robotsLayer;
 
     private RaycastHit hit;
     private Transform cam;
@@ -14,15 +14,15 @@ public class Player : MonoBehaviour
     private AsyncOperation nextScene;
     private bool loading;
 
-    void Start()
+    void Awake()
     {
         cam = Camera.main.transform;
     }
 
     void Update()
     {
-        if (Physics.Raycast(cam.position, cam.forward, out hit, 100, wallLayer.value) &&
-            !Physics.Raycast(cam.position, cam.forward, 100, robotLayer.value))
+        if (Physics.Raycast(cam.position, cam.forward, out hit, 100, wallsLayer.value) &&
+            !Physics.Raycast(cam.position, cam.forward, 100, robotsLayer.value))
         {
             if (Input.GetMouseButton(0))
             {
@@ -35,15 +35,11 @@ public class Player : MonoBehaviour
             }
             Debug.DrawRay(hit.point, hit.normal, Color.green);
         }
-        if (Input.GetMouseButtonDown(1) && !loading)
-        {
-            print("loading");
-            nextScene = Application.LoadLevelAdditiveAsync(1);
-            loading = true;
-        }
-        if (loading)
-        {
-            print(nextScene.progress);
-        }
+    }
+
+    void LoadLevel()
+    {
+        Application.LoadLevelAdditive(1);
+        loading = true;
     }
 }
