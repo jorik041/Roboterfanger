@@ -3,13 +3,16 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public Transform robot;
-    public Transform robot1;
     public GUIText display;
     public float robotHeight = 0.14f;
+    public LayerMask wallLayer;
+    public LayerMask robotLayer;
 
     private RaycastHit hit;
     private Transform cam;
     private int robotCount;
+    private AsyncOperation nextScene;
+    private bool loading;
 
     void Start()
     {
@@ -18,32 +21,29 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        if (Physics.Raycast(cam.position, cam.forward, out hit))
+        if (Physics.Raycast(cam.position, cam.forward, out hit, 100, wallLayer.value) &&
+            !Physics.Raycast(cam.position, cam.forward, 100, robotLayer.value))
         {
             if (Input.GetMouseButton(0))
             {
-                if (hit.transform.tag != "Robot")
-                {
-                    var normal = hit.normal;
-                    var forward = cam.up;
-                    Vector3.OrthoNormalize(ref normal, ref forward);
-                    Instantiate(robot, hit.point + normal * robotHeight / 2, Quaternion.LookRotation(forward, normal));
-                    robotCount++;
-                }
-            }
-            else if (Input.GetMouseButton(1))
-            {
-                if (hit.transform.tag != "Robot")
-                {
-                    var normal = hit.normal;
-                    var forward = cam.up;
-                    Vector3.OrthoNormalize(ref normal, ref forward);
-                    Instantiate(robot1, hit.point + normal * robotHeight / 2, Quaternion.LookRotation(forward, normal));
-                    robotCount++;
-                }
+                var normal = hit.normal;
+                var forward = cam.up;
+                Vector3.OrthoNormalize(ref normal, ref forward);
+                Instantiate(robot, hit.point + normal * robotHeight / 2, Quaternion.LookRotation(forward, normal));
+                robotCount++;
+                display.text = robotCount.ToString();
             }
             Debug.DrawRay(hit.point, hit.normal, Color.green);
         }
-        display.text = robotCount.ToString();
+        if (Input.GetMouseButtonDown(1) && !loading)
+        {
+            print("loading");
+            nextScene = Application.LoadLevelAdditiveAsync(1);
+            loading = true;
+        }
+        if (loading)
+        {
+            print(nextScene.progress);
+        }
     }
 }

@@ -5,14 +5,15 @@ public class Robot : MonoBehaviour
     public float acceleration;
     public float turnSpeed;
     public float gravity;
-    public LayerMask wallLayer;
     public Renderer skin;
     
     private Transform robot;
     private Rigidbody body;
     private Material skinMaterial;
     private bool mode = true;
+    private GameObject wall;
     private Vector3 wallNormal;
+    private Vector3 wallPoint;
 
     void Start()
     {
@@ -21,6 +22,7 @@ public class Robot : MonoBehaviour
         body.centerOfMass = new Vector3(0, -0.05f, 0);
         skinMaterial = skin.material;
         wallNormal = robot.up;
+        wallPoint = robot.position;
 
         var start = Random.value;
 
@@ -91,19 +93,34 @@ public class Robot : MonoBehaviour
         body.AddTorque(robot.up * turnSpeed);
     }
 
+    void OnCollisionEnter(Collision collisionInfo)
+    {
+        if (collisionInfo.gameObject.tag != "Wall") return;
+
+        //if(collisionInfo.gameObject =)
+    }
+
     void OnCollisionStay(Collision collisionInfo)
     {
         if (collisionInfo.gameObject.tag != "Wall") return;
 
-        if (collisionInfo.contacts.Length > 0)
+        var angle = Vector3.Angle(robot.up, wallNormal);
+        var newNormal = collisionInfo.contacts[0].normal;
+        var newPoint = collisionInfo.contacts[0].point;
+        
+        foreach (var contact in collisionInfo.contacts)
         {
-            foreach (var contact in collisionInfo.contacts)
+            Debug.DrawRay(contact.point, contact.normal, Color.white);
+            if (Vector3.Angle(robot.up, contact.normal) < angle)
             {
-                Debug.DrawRay(contact.point, contact.normal, Color.white);
+                newNormal = contact.normal;
+                newPoint = contact.point;
             }
-
-            wallNormal = collisionInfo.contacts[0].normal;
-            Debug.DrawRay(collisionInfo.contacts[0].point, collisionInfo.contacts[0].normal, Color.black);
         }
+
+        Debug.DrawRay(newPoint, newNormal, Color.black);
+        wall = collisionInfo.gameObject;
+        wallNormal = newNormal;
+        wallPoint = newPoint;
     }
 }
