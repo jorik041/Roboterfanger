@@ -39,7 +39,6 @@ public class Mastermind : MonoBehaviour
                     as Transform;
                 robots.Add(robot);
                 if (destination != null) robot.GetComponent<Robot>().SetDestination(destinationPoint);
-                display.text = robots.Count.ToString();
             }
             Debug.DrawRay(hit.point, hit.normal, Color.green);
 
@@ -63,6 +62,8 @@ public class Mastermind : MonoBehaviour
                 Destroy(destination.gameObject);
             }
         }
+
+        display.text = robots.Count.ToString();
     }
 
     public void KillRobot(Transform sacrifice)
