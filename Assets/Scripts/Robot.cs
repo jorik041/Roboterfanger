@@ -5,9 +5,7 @@ public class Robot : MonoBehaviour
     public float acceleration = 0.3f;
     public float turnSpeed = 0.01f;
     public float gravity = 3;
-    //public float maxVelocity = 0.3f;
     public Renderer skin;
-    public LayerMask wallsLayer;
     
     private Transform tr;
     private Rigidbody rb;
@@ -16,9 +14,7 @@ public class Robot : MonoBehaviour
     private GameObject wall;
     private Vector3 wallNormal;
     private Vector3 wallPoint;
-    //private float sqrMaxVelocity;
     private Vector3 destination;
-    private Vector3 destinationNormal;
     private Vector3 destinationVector;
     private bool goal;
 
@@ -27,7 +23,6 @@ public class Robot : MonoBehaviour
         tr = transform;
         rb = rigidbody;
         rb.centerOfMass = new Vector3(0, -0.05f, 0);
-        //sqrMaxVelocity = maxVelocity*maxVelocity;
         skinMaterial = skin.material;
         wallNormal = tr.up;
         wallPoint = tr.position;
@@ -41,6 +36,13 @@ public class Robot : MonoBehaviour
         InvokeRepeating("SwitchColorMode", 2 + start*2, 2 + start*2);
     }
 
+    void Update()
+    {
+        Debug.DrawRay(tr.position, -wallNormal, Color.red);
+        Debug.DrawRay(tr.position, -tr.up, Color.blue);
+        if(goal) Debug.DrawRay(tr.position, destinationVector, Color.cyan);
+    }
+
     void FixedUpdate()
     {
         if (tr.up != wallNormal)
@@ -52,31 +54,6 @@ public class Robot : MonoBehaviour
         }
         if (wall != null) rb.AddForce(-wallNormal*gravity);
         else rb.AddForce(-tr.up*gravity);
-
-        Debug.DrawRay(tr.position, -wallNormal, Color.red);
-        Debug.DrawRay(tr.position, -tr.up, Color.blue);
-        //var velocity = rb.velocity;
-        //if (velocity.sqrMagnitude > sqrMaxVelocity)
-        //{
-        //    rb.velocity = Vector3.ClampMagnitude(velocity, maxVelocity);
-        //}
-    }
-
-    void Update()
-    {
-        if (Input.GetMouseButtonDown(1))
-        {
-            RaycastHit hit;
-            Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out hit, 100, wallsLayer.value);
-            destination = hit.point;
-            destinationNormal = hit.normal;
-            if (!goal)
-            {
-                CancelInvoke("SwitchColorMode");
-                skinMaterial.color = new Color(1, 0.1f, 0);
-                goal = true;
-            }
-        }
     }
 
     void AI()
@@ -86,9 +63,7 @@ public class Robot : MonoBehaviour
             destinationVector = destination - tr.position;
             var up = tr.up;
             Vector3.OrthoNormalize(ref up, ref destinationVector);
-
-            Debug.DrawRay(tr.position, destinationVector, Color.cyan, 0.1f);
-            Debug.DrawRay(destination, destinationNormal, Color.magenta, 0.1f);
+            
             if (destinationVector != tr.forward)
             {
                 tr.rotation = Quaternion.LookRotation(destinationVector, tr.up);
@@ -107,6 +82,21 @@ public class Robot : MonoBehaviour
     public void SetDestination(Vector3 point)
     {
         destination = point;
+
+        if (!goal)
+        {
+            CancelInvoke("SwitchColorMode");
+            skinMaterial.color = new Color(1, 0.1f, 0);
+            goal = true;
+        }
+    }
+
+    public void RemoveDestination()
+    {
+        goal = false;
+        SwitchColorMode();
+        var start = Random.value;
+        InvokeRepeating("SwitchColorMode", 2 + start * 2, 2 + start * 2);
     }
 
     void StartAudio()
@@ -116,6 +106,12 @@ public class Robot : MonoBehaviour
 
     void SwitchColorMode()
     {
+        if (goal)
+        {
+            CancelInvoke("SwitchColorMode");
+            return;
+        }
+            
         if (colorMode)
         {
             skinMaterial.color = new Color(1, 0.8f, 0);
@@ -158,7 +154,6 @@ public class Robot : MonoBehaviour
     {
         if (collisionInfo.gameObject.tag != "Wall") return;
         if (wall == null) wall = collisionInfo.gameObject;
-        //if (collisionInfo.gameObject != wall) return;
         
         foreach (var contact in collisionInfo.contacts)
         {
