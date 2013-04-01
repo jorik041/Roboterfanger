@@ -3,6 +3,8 @@ Roboterfänger
 
 Песочница с роботами
 
+[Онлайн версия](http://basmanovdaniil.github.com/Roboterfanger/Builds/Web/Web.html)
+
 Скомпилированные версии (1 апреля 2013):
 
 * Linux [Яндекс.Диск](http://yadi.sk/d/nhfv5w8J3hes5) [Dropbox](https://www.dropbox.com/s/qu28lsleyhmf55i/Linux.zip)
