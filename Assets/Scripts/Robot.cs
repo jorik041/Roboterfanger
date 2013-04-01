@@ -31,8 +31,8 @@ public class Robot : MonoBehaviour
     void Start()
     {
         var start = Random.value;
-        Invoke("StartAudio", 0.5f + start);
-        InvokeRepeating("AI", 0.5f + start, 0.1f);
+        Invoke("StartAudio", start);
+        InvokeRepeating("AI", start, 0.1f);
         InvokeRepeating("SwitchColorMode", 2 + start*2, 2 + start*2);
     }
 

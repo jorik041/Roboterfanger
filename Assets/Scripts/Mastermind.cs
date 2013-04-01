@@ -4,16 +4,19 @@ using System.Collections.Generic;
 public class Mastermind : MonoBehaviour
 {
 
-    public Transform player;
+    public Transform playerPrefab;
     public Transform robotPrefab;
     public Transform destinationPrefab;
-    public GUIText display;
+    public Transform hudPrefab;
     public LayerMask wallsLayer;
     public LayerMask robotsLayer;
     public float robotHeight = 0.14f;
 
+    private Transform respawn;
+    private Transform player;
     private Transform cam;
     private List<Transform> robots = new List<Transform>();
+    private GUIText robotsDisplay;
     private RaycastHit hit;
     private Transform destination;
     private Vector3 destinationPoint;
@@ -21,7 +24,11 @@ public class Mastermind : MonoBehaviour
     void Awake()
     {
         DontDestroyOnLoad(gameObject);
+        respawn = GameObject.FindGameObjectWithTag("Respawn").transform;
+        player = Instantiate(playerPrefab, respawn.position, respawn.rotation) as Transform;
         cam = Camera.main.transform;
+        var hud = Instantiate(hudPrefab) as Transform;
+        robotsDisplay = hud.FindChild("Robots display").GetComponent<GUIText>();
     }
 
     void Update()
@@ -63,7 +70,7 @@ public class Mastermind : MonoBehaviour
             }
         }
 
-        display.text = robots.Count.ToString();
+        robotsDisplay.text = robots.Count.ToString();
     }
 
     public void KillRobot(Transform sacrifice)
