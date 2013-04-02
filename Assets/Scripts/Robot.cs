@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class Robot : MonoBehaviour
 {
     public float acceleration = 0.3f;
@@ -31,6 +32,7 @@ public class Robot : MonoBehaviour
     void Start()
     {
         var start = Random.value;
+        //audio.pitch = 0.5f + start;
         Invoke("StartAudio", start);
         InvokeRepeating("AI", start, 0.1f);
         InvokeRepeating("SwitchColorMode", 2 + start*2, 2 + start*2);

@@ -45,7 +45,7 @@ public class Mastermind : MonoBehaviour
                     Instantiate(robotPrefab, hit.point + normal*robotHeight/2, Quaternion.LookRotation(forward, normal))
                     as Transform;
                 robots.Add(robot);
-                if (destination != null) robot.GetComponent<Robot>().SetDestination(destinationPoint);
+                if (destination != null) robot.GetComponent<RobotAI>().target = destination;
             }
             Debug.DrawRay(hit.point, hit.normal, Color.green);
 
@@ -57,14 +57,14 @@ public class Mastermind : MonoBehaviour
 
                 foreach (var robot in robots)
                 {
-                    robot.GetComponent<Robot>().SetDestination(destinationPoint);
+                    robot.GetComponent<RobotAI>().target = destination;
                 }
             }
             if (Input.GetMouseButtonDown(2))
             {
                 foreach (var robot in robots)
                 {
-                    robot.GetComponent<Robot>().RemoveDestination();
+                    robot.GetComponent<RobotAI>().target = robot;
                 }
                 Destroy(destination.gameObject);
             }
