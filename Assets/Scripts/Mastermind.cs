@@ -1,15 +1,17 @@
+using System.Globalization;
 using UnityEngine;
 using System.Collections.Generic;
 
 public class Mastermind : MonoBehaviour
 {
-
     public Transform playerPrefab;
     public Transform robotPrefab;
     public Transform destinationPrefab;
     public Transform hudPrefab;
     public LayerMask wallsLayer;
     public LayerMask robotsLayer;
+
+    //[Range(0.1f, 0.2f)]
     public float robotHeight = 0.14f;
 
     private Transform respawn;
@@ -45,26 +47,29 @@ public class Mastermind : MonoBehaviour
                     Instantiate(robotPrefab, hit.point + normal*robotHeight/2, Quaternion.LookRotation(forward, normal))
                     as Transform;
                 robots.Add(robot);
-                if (destination != null) robot.GetComponent<RobotAI>().target = destination;
+                if (destination != null) robot.GetComponent<SpaceRobot>().SetTarget(destination);
             }
-            Debug.DrawRay(hit.point, hit.normal, Color.green);
+            //Debug.DrawRay(hit.point, hit.normal, Color.green);
 
             if (Input.GetMouseButton(1))
             {
                 destinationPoint = hit.point;
                 if (destination != null) destination.position = destinationPoint;
                 else destination = Instantiate(destinationPrefab, destinationPoint, Quaternion.identity) as Transform;
-
+            }
+            if(Input.GetMouseButtonUp(1))
+            {
                 foreach (var robot in robots)
                 {
-                    robot.GetComponent<RobotAI>().target = destination;
+                    robot.GetComponent<SpaceRobot>().SetTarget(destination);
                 }
             }
+
             if (Input.GetMouseButtonDown(2))
             {
                 foreach (var robot in robots)
                 {
-                    robot.GetComponent<RobotAI>().target = robot;
+                    robot.GetComponent<SpaceRobot>().RemoveTarget();
                 }
                 Destroy(destination.gameObject);
             }
